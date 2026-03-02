@@ -54,13 +54,6 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-import cors from "cors";
-import dotenv from "dotenv";
-import OpenAI from "openai";
-import fs from "fs";
-import path from "path";
-import * as turf from "@turf/turf";
-
 dotenv.config();
 
 const EU_A3 = new Set([
@@ -464,4 +457,5 @@ app.listen(PORT, () => {
   console.log("Server running on port", PORT);
 
 });
+
 
