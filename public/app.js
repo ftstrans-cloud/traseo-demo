@@ -1020,8 +1020,8 @@ console.log("getRoute() start:", getRouteFromUI());
 
   try {
     const url = useMulti
-      ? "http://localhost:3001/api/route/multi"
-      : "http://localhost:3001/api/route";
+  ? "/api/route/multi"
+  : "/api/route";
 
     const payload = useMulti ? { origin, destination, stops } : { origin, destination };
 
@@ -1771,3 +1771,4 @@ document.addEventListener("DOMContentLoaded", renderHistory);
   });
 
 })();
+
