@@ -2,7 +2,7 @@
 <html lang="pl" data-theme="dark">
 <head>
   <meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TRASEO - Kalkulator kosztów trasy</title>
 <style>
 
@@ -880,77 +880,40 @@ button{
   border: 0 !important;
 }
 
-/* ================= MOBILE CLEAN LAYOUT ================= */
-
 @media (max-width: 980px){
 
   body{
     padding:16px;
-    padding-bottom: 40px;
+    padding-bottom:40px;
   }
 
   .layout{
-    display:flex;
-    flex-direction: column;
+    display:block;
     height:auto;
-    gap:20px;
   }
 
   .col{
     position: static !important;
     height:auto !important;
     overflow:visible !important;
+    margin-bottom:20px;
   }
 
-  .col.center{
-    order: 1;
-  }
-
-  .col.left{
-    order: 2;
-  }
-
-  .col.right{
-    order: 3;
-  }
-
-  .mapCard{
-    height:auto;
-  }
-
-  #map.mapFill{
-    height: 380px;
-    min-height: 300px;
+  #map{
+    height:380px;
   }
 
   .actionBar{
-    position: static;
+    position: static !important;
     margin-top:20px;
   }
 
   .kpis{
-    grid-template-columns: 1fr;
+    grid-template-columns:1fr;
   }
 
   .row2{
-    grid-template-columns: 1fr;
-  }
-
-  body{
-    font-size: 16px;
-  }
-
-  h1{ font-size:22px; }
-  h2{ font-size:18px; }
-
-  input, select, textarea{
-    font-size:16px;
-    padding:14px;
-  }
-
-  .btn{
-    font-size:16px;
-    padding:14px;
+    grid-template-columns:1fr;
   }
 
 }
@@ -1310,6 +1273,7 @@ button{
 
 </body>
 </html>
+
 
 
 
