@@ -58,8 +58,6 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-dotenv.config();
-
 const EU_A3 = new Set([
   "AUT","BEL","BGR","HRV","CYP","CZE","DNK","EST","FIN","FRA","DEU","GRC",
   "HUN","IRL","ITA","LVA","LTU","LUX","MLT","NLD","POL","PRT","ROU","SVK",
@@ -457,6 +455,7 @@ app.listen(PORT, () => {
   console.log("Server running on port", PORT);
 
 });
+
 
 
 
