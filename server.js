@@ -403,5 +403,12 @@ ${JSON.stringify(calc, null, 2)}
 
 loadBorders();
 
+/* 🌐 FRONTEND */
+app.use(express.static(path.join(process.cwd(), "public")));
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(process.cwd(), "public", "index.html"));
+});
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`✅ Serwer działa: http://localhost:${PORT}`));
