@@ -1,0 +1,1235 @@
+<!doctype html>
+<html lang="pl" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <title>TRASEO - Kalkulator kosztów trasy</title>
+<style>
+
+html, body{
+  height: 100%;
+  overflow: hidden; /* ważne: body nie przewija */
+}
+
+:root{
+  --bg:#1f2937;          
+  --panel:#253049;       
+  --panel2:#2b3658;
+  --text:#f8fafc;        
+  --muted:#d1d9ff;       
+  --border:rgba(255,255,255,.22);
+  --accent:#7aa2ff;
+  --page-pad: 24px;         /* masz w body padding:24px */
+--actionbar-h: 92px; /* jak masz większy pasek, podbij */
+  --pad: 24px;
+  --gap: 16px;
+}
+
+*{ box-sizing:border-box; }
+
+body{
+  font-size: 15px;
+  line-height: 1.45;
+  margin:0;
+  padding:24px;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: var(--text);
+  background:
+  radial-gradient(1200px 600px at 15% -10%, rgba(122,162,255,.45), transparent 60%),
+  radial-gradient(900px 500px at 85% 0%, rgba(99,102,241,.40), transparent 55%),
+  linear-gradient(180deg, #1e293b, #1f2937);
+  padding-bottom: calc(var(--actionbar-h) + 24px);
+}
+
+body{ padding-bottom: 110px; }  /* miejsce na actionBar */
+
+.col.left, .col.right {
+  padding-bottom: 90px; /* wysokość actionBar + margines */
+}
+
+.app{
+  width: 100%;
+  max-width: none;   /* było 1600px /
+  margin: 0;         / było 0 auto */
+}
+
+.layout{
+  height: calc(100vh - (2 * var(--pad)) - var(--actionbar-h) - 12px); 
+  /* 12px to bottom paska (bo dałeś bottom:12px) */
+  display:grid;
+  grid-template-columns: 380px minmax(560px, 1fr) 420px;
+  gap:16px;
+  align-items:start;
+}
+
+.col{ min-width:0; }
+
+
+
+/* lewa i prawa kolumna przewijane */
+.col.left{
+  height: 100%;
+  overflow: auto;
+  position: sticky;
+  top: 24px; /* jak chcesz, może zostać */
+}
+
+.col.right{
+  height: 100%;
+  overflow: auto;
+  position: sticky;
+  top: 24px; /* jak chcesz, może zostać */
+}
+
+.col.center{
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.col.center .card{
+  flex: 1;
+  min-height: 0;
+}
+
+/* duża mapa */
+.mapBig{
+  height: 100% !important;
+  min-height: 520px !important;
+  border: none;
+  border-radius: 14px;
+}
+
+.card{
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,.12),
+    rgba(255,255,255,.06)
+  );
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow:
+    0 8px 22px rgba(0,0,0,.25),
+    inset 0 1px 0 rgba(255,255,255,.25);
+}
+
+
+h1{ font-size: 22px; margin:0 0 12px; }
+h2{ font-size: 15px; margin:0 0 10px; }
+
+.form label{
+  display:block;
+  margin:10px 0 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.form input{
+  width:100%;
+  padding:11px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.12);
+  color: var(--text);
+}
+
+.form input:focus{
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(122,162,255,.30);
+}
+
+.row2{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:10px;
+}
+
+.btn{
+  width:100%;
+  padding:10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(110,168,255,.18);
+  color: var(--text);
+  cursor:pointer;
+  font-weight:700;
+}
+
+.btn:hover{ background: rgba(110,168,255,.28); }
+.btn.secondary{ background: rgba(255,255,255,.06); }
+.btn.secondary:hover{ background: rgba(255,255,255,.10); }
+
+.stack{ display:flex; flex-direction:column; gap:12px; }
+
+.kpis{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:10px;
+}
+
+.kpi{
+  padding:16px;
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,.18),
+    rgba(255,255,255,.08)
+  );
+  border-radius: 12px;
+  border:1px solid var(--border);
+}
+
+.kpi .label{
+  font-size:13px;
+  letter-spacing:.3px;
+  color: var(--muted);
+}
+
+.kpi .value{
+  font-size:24px;
+  font-weight:800;
+  color:#ffffff;
+}
+
+table{
+  width:100%;
+  border-collapse: collapse;
+  overflow:hidden;
+  border-radius: 12px;
+  border:1px solid var(--border);
+}
+
+th, td{
+  padding:12px 12px;
+  font-size: 14px;
+  border-bottom:1px solid var(--border);
+}
+
+th{
+  text-align:left;
+  color: var(--muted);
+  font-weight:700;
+  background: rgba(255,255,255,.02);
+}
+
+tbody tr:hover{ background: rgba(255,255,255,.04); }
+tr:last-child td{ border-bottom: none; }
+
+pre{
+  margin:0;
+  padding:12px;
+  border-radius: 12px;
+  background: rgba(0,0,0,.30);
+  border:1px solid var(--border);
+  color: var(--text);
+  white-space: pre-wrap;
+  font-size:14px;
+  line-height:1.55;
+}
+
+.small{ font-size:12px; color: var(--muted); }
+
+@media (max-width: 980px){
+  .app{ grid-template-columns: 1fr; height: auto; }
+  .sidebar{ position: static; height: auto; overflow: visible; }
+  .main{ height: auto; overflow: visible; }
+}
+
+#aiReport{ min-height: 120px; }
+#routeInfo{ min-height: 70px; }
+
+.iconBtn{
+  height: 42px;
+  width: 44px;
+  border-radius: 10px;
+  border:1px solid var(--border);
+  background: rgba(255,255,255,.08);
+  color: var(--text);
+  cursor:pointer;
+  font-weight:900;
+}
+
+.iconBtn:hover{
+  background: rgba(255,255,255,.14);
+}
+
+.actionBar{
+  position: fixed;
+  left: 24px;
+  right: 24px;
+  bottom: 12px;
+  z-index: 9999;
+
+  display:grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap:10px;
+  padding:12px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  background: rgba(20, 26, 44, .65);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 28px rgba(0,0,0,.25);
+}
+
+.stopRow{
+  display:grid;
+  grid-template-columns: 1fr 40px 40px 44px;
+  gap:8px;
+  align-items:center;
+}
+
+.iconBtn.small{
+  height: 42px;
+  width: 40px;
+  font-weight:900;
+}
+
+.stopsActions{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:10px;
+  margin-top:10px;
+}
+
+.actionBar{ bottom: 0; }
+
+.autoBox{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:10px;
+  padding:10px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background: rgba(255,255,255,.06);
+}
+
+.chk{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin:0;
+  padding:8px 10px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background: rgba(255,255,255,.06);
+  color: var(--text);
+  font-weight:700;
+  font-size:13px;
+}
+
+.chk input{
+  width:auto;
+  transform: scale(1.05);
+}
+
+.routeList{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin: 8px 0 10px;
+}
+
+.routeRow{
+  display:grid;
+  grid-template-columns: 1fr 40px 40px 44px;
+  gap:8px;
+  align-items:center;
+}
+
+.routeTag{
+  font-size:12px;
+  color: var(--muted);
+  margin: 6px 0 2px;
+}
+
+#map { height: 420px; width: 100%; }
+.leaflet-container { background: rgba(0,0,0,.2); border-radius: 14px; }
+
+.route-flag-icon {
+  background: transparent !important;
+  border: 0 !important;
+}
+
+.modeBox { margin: 12px 0 6px; padding: 12px; border-radius: 14px;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+}
+.modeLabel { font-weight: 700; margin-bottom: 10px; opacity: .95; }
+.modeSwitch { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.modeBtn { padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.18); color: inherit; cursor: pointer; text-align: left;
+}
+.modeBtn .modeSub { display:block; font-size:12px; opacity:.8; margin-top:3px; font-weight: 500; }
+.modeBtn.active { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.18); }
+
+.modeOfferRow { margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: center; }
+.modeInlineLabel { font-size: 12px; opacity: .85; }
+
+.historyBox{ margin-top:14px; padding:12px; border-radius:14px;
+  border:1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.04);
+}
+.historyHeader{ display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
+.historyTitle{ font-weight:800; }
+.historySub{ font-size:12px; opacity:.75; margin-top:2px; }
+.historyActions{ display:flex; gap:8px; flex-wrap:wrap; }
+
+.historyList{ margin-top:10px; display:flex; flex-direction:column; gap:8px; max-height:360px; overflow:auto; padding-right:6px; }
+.historyItem{ padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,.10);
+  background: rgba(0,0,0,.16);
+}
+.historyTop{ display:flex; justify-content:space-between; gap:10px; align-items:center; }
+.historyName{ font-weight:700; }
+.historyMeta{ font-size:12px; opacity:.75; }
+.historyLine{ margin-top:6px; font-size:13px; opacity:.95; }
+.historyBadges{ margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; }
+.badge{ font-size:12px; padding:4px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.10); opacity:.9; }
+
+.historyBtns{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; }
+.historyBtns .btn{ padding:8px 10px; }
+
+.historyModal{ position:fixed; inset:0; background: rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; z-index:9999; }
+.historyModalCard{ width:min(520px, 92vw); border-radius:16px; padding:14px;
+  background: rgba(20,20,20,.98); border:1px solid rgba(255,255,255,.12);
+}
+.historyModalTitle{ font-weight:800; margin-bottom:10px; }
+.historyForm{ display:flex; flex-direction:column; gap:6px; }
+.historyForm label{ font-size:12px; opacity:.75; margin-top:6px; }
+.historyModalBtns{ margin-top:12px; display:flex; justify-content:flex-end; gap:10px; }
+
+.historyPanelHead{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  cursor:pointer;
+  gap:12px;
+}
+
+.historyPanelActions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin: 10px 0 12px;
+}
+
+.historyList .historyItem{
+  margin-bottom:10px;
+}
+
+.historyList{
+  max-height: 280px;
+  overflow:auto;
+  padding-right: 4px;
+}
+
+/* przyciski w historii trochę mniejsze, żeby nie „puchły” */
+.historyList .btn{
+  padding: 7px 8px;
+  font-size: 12px;
+}
+
+#historyChevron{
+  opacity:.8;
+}
+
+.historyPanel{
+  margin-top: 16px;
+}
+
+/* === SPÓJNY WYGLĄD KONTROLEK (input/select/textarea/button) === */
+input, select, textarea, button{
+  font: inherit;
+  color: var(--text);
+}
+
+input, select, textarea{
+  width: 100%;
+  padding: 11px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.12);
+  color: var(--text);
+  outline: none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
+}
+
+/* focus jak w panelach */
+input:focus, select:focus, textarea:focus{
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(122,162,255,.30);
+}
+
+/* placeholder */
+input::placeholder, textarea::placeholder{
+  color: rgba(209,217,255,.65);
+}
+
+/* number — żeby nie wracało do “stockowego” */
+input[type="number"]{
+  appearance: textfield;
+}
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button{
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* select — też ma stockowy “look”, więc go ujednolicamy */
+select{
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba(248,250,252,.75) 50%),
+    linear-gradient(135deg, rgba(248,250,252,.75) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 50%,
+    calc(100% - 12px) 50%;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 34px;
+}
+
+/* disabled */
+input:disabled, select:disabled, textarea:disabled{
+  opacity: .65;
+  cursor: not-allowed;
+}
+
+/* przyciski już masz .btn — ale dopnij spójny reset */
+button{
+  border: 0;
+  background: transparent;
+}
+
+/* CENTRALNA KOLUMNA ma wypełniać wysokość okna jak sidebar */
+.col.center{
+  height: calc(100vh - 48px);
+}
+
+/* karta mapy ma rosnąć i oddać całą przestrzeń mapie */
+.mapCard{
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* nagłówek mapy nie rośnie */
+.mapHead{
+  flex: 0 0 auto;
+}
+
+/* mapa rośnie i wypełnia resztę */
+#map.mapFill{
+  flex: 1 1 auto;
+  min-height: 420px;
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+/* ważne: Leaflet lubi mieć tło, żeby nie wyglądało na “dziurę” */
+.leaflet-container{
+  background: rgba(0,0,0,.2);
+}
+
+/* =========================
+   THEME SWITCH (UI)
+========================= */
+.themeSwitch{
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 10000;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 2px solid var(--border);
+  background: rgba(20, 26, 44, .45);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 28px rgba(0,0,0,.18);
+}
+
+.themeSwitch .tLabel{
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted);
+  opacity: .95;
+}
+
+.themeSwitch .tBtn{
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 2px solid var(--border);
+  background: rgba(255,255,255,.08);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 900;
+  letter-spacing: .2px;
+}
+.themeSwitch .tBtn:hover{ background: rgba(255,255,255,.14); }
+
+
+/* =========================
+   LIGHT THEME VARIABLES
+   (ramki granatowe jak w PDF)
+========================= */
+:root[data-theme="light"]{
+  --bg: #f6f8fb;
+  --panel: #ffffff;
+  --panel2: #ffffff;
+
+  --text: #0b1220;
+  --muted: #516173;
+
+  /* granatowe ramki (bardziej widoczne) */
+  --border: rgba(37, 99, 235, .28);
+  --accent: #2563eb;
+}
+
+/* tło strony w jasnym trybie */
+:root[data-theme="light"] body{
+  background:
+    radial-gradient(1200px 600px at 15% -10%, rgba(37,99,235,.16), transparent 60%),
+    radial-gradient(900px 500px at 85% 0%, rgba(99,102,241,.12), transparent 55%),
+    linear-gradient(180deg, #f6f8fb, #eef2f7);
+  color: var(--text);
+}
+
+/* karty w jasnym trybie */
+:root[data-theme="light"] .card{
+  background: linear-gradient(180deg, rgba(255,255,255,1), rgba(255,255,255,.96));
+  border: 2px solid var(--border);
+  box-shadow:
+    0 8px 22px rgba(2,6,23,.06),
+    inset 0 1px 0 rgba(255,255,255,.8);
+}
+
+/* KPI w jasnym trybie */
+:root[data-theme="light"] .kpi{
+  background: linear-gradient(180deg, rgba(246,248,251,1), rgba(238,242,247,1));
+  border: 2px solid var(--border);
+}
+:root[data-theme="light"] .kpi .value{
+  color: #0b1220;
+}
+
+/* inputy/select/textarea w jasnym trybie */
+:root[data-theme="light"] input,
+:root[data-theme="light"] select,
+:root[data-theme="light"] textarea{
+  background: #ffffff;
+  color: var(--text);
+  border: 2px solid var(--border);
+  box-shadow: inset 0 1px 0 rgba(2,6,23,.04);
+}
+:root[data-theme="light"] input::placeholder,
+:root[data-theme="light"] textarea::placeholder{
+  color: rgba(81,97,115,.65);
+}
+:root[data-theme="light"] input:focus,
+:root[data-theme="light"] select:focus,
+:root[data-theme="light"] textarea:focus{
+  border-color: rgba(37,99,235,.55);
+  box-shadow: 0 0 0 3px rgba(37,99,235,.18);
+}
+
+/* tabele w jasnym trybie */
+:root[data-theme="light"] table{
+  border: 2px solid var(--border);
+}
+:root[data-theme="light"] th{
+  background: rgba(37,99,235,.06);
+  color: var(--muted);
+}
+:root[data-theme="light"] tbody tr:hover{
+  background: rgba(37,99,235,.05);
+}
+
+/* PRE w jasnym trybie */
+:root[data-theme="light"] pre{
+  background: rgba(37,99,235,.06);
+  border: 2px solid var(--border);
+  color: var(--text);
+}
+
+/* przyciski w jasnym trybie */
+:root[data-theme="light"] .btn{
+  border: 2px solid var(--border);
+  background: rgba(37,99,235,.10);
+  color: var(--text);
+}
+:root[data-theme="light"] .btn:hover{ background: rgba(37,99,235,.16); }
+:root[data-theme="light"] .btn.secondary{
+  background: rgba(255,255,255,.88);
+}
+:root[data-theme="light"] .btn.secondary:hover{
+  background: rgba(37,99,235,.06);
+}
+
+/* actionBar w jasnym trybie */
+:root[data-theme="light"] .actionBar{
+  background: rgba(255,255,255,.75);
+  border: 2px solid var(--border);
+  box-shadow: 0 10px 28px rgba(2,6,23,.10);
+}
+
+/* przełącznik w jasnym trybie – czytelny */
+:root[data-theme="light"] .themeSwitch{
+  background: rgba(255,255,255,.75);
+}
+
+/* =========================
+   ENTERPRISE LIGHT FINAL
+========================= */
+
+:root[data-theme="light"]{
+  --bg: #f4f7fc;
+  --panel: #ffffff;
+  --panel2: #ffffff;
+
+  --text: #0f172a;
+  --muted: #475569;
+
+  /* mocny, elegancki granat */
+  --accent: #1e40af;
+  --accent-soft: rgba(30,64,175,.12);
+
+  /* wyraźne ramki */
+  --border: rgba(30,64,175,.38);
+  --border-soft: rgba(30,64,175,.22);
+
+  --shadow-soft: 0 10px 24px rgba(2,6,23,.08);
+}
+
+/* ===== TŁO ===== */
+:root[data-theme="light"] body{
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(30,64,175,.16), transparent 60%),
+    radial-gradient(900px 500px at 90% 0%, rgba(37,99,235,.12), transparent 55%),
+    linear-gradient(180deg, #f4f7fc, #eef2f7);
+  color: var(--text);
+}
+
+/* ===== KARTY ===== */
+:root[data-theme="light"] .card{
+  background: #ffffff;
+  border: 2.2px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-soft);
+}
+
+/* ===== NAGŁÓWKI ===== */
+:root[data-theme="light"] h1,
+:root[data-theme="light"] h2{
+  color: #0f172a;
+  font-weight: 800;
+}
+
+/* ===== KPI ===== */
+:root[data-theme="light"] .kpi{
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  border: 2px solid var(--border);
+  border-radius: 14px;
+}
+
+:root[data-theme="light"] .kpi .label{
+  color: var(--muted);
+  font-weight: 700;
+}
+
+:root[data-theme="light"] .kpi .value{
+  color: #0f172a;
+}
+
+/* ===== INPUTY ===== */
+:root[data-theme="light"] input,
+:root[data-theme="light"] select,
+:root[data-theme="light"] textarea{
+  background: #ffffff;
+  border: 2px solid var(--border-soft);
+  border-radius: 12px;
+  color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(2,6,23,.04);
+}
+
+:root[data-theme="light"] input:focus,
+:root[data-theme="light"] select:focus,
+:root[data-theme="light"] textarea:focus{
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(30,64,175,.18);
+}
+
+/* ===== BUTTONY ===== */
+:root[data-theme="light"] .btn{
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: #0f172a;
+  font-weight: 800;
+}
+
+:root[data-theme="light"] .btn:hover{
+  background: rgba(30,64,175,.20);
+}
+
+:root[data-theme="light"] .btn.secondary{
+  background: #ffffff;
+  border: 2px solid var(--border-soft);
+}
+
+/* ===== TABELA ===== */
+:root[data-theme="light"] table{
+  border: 2px solid var(--border);
+  border-radius: 14px;
+}
+
+:root[data-theme="light"] th{
+  background: rgba(30,64,175,.08);
+  color: #334155;
+  font-weight: 800;
+}
+
+:root[data-theme="light"] td{
+  border-bottom: 1px solid var(--border-soft);
+}
+
+:root[data-theme="light"] tbody tr:hover{
+  background: rgba(30,64,175,.06);
+}
+
+/* ===== PRE / DEBUG ===== */
+:root[data-theme="light"] pre{
+  background: rgba(30,64,175,.06);
+  border: 2px solid var(--border);
+}
+
+/* ===== ACTION BAR ===== */
+:root[data-theme="light"] .actionBar{
+  background: rgba(255,255,255,.88);
+  border: 2px solid var(--border);
+  box-shadow: 0 14px 30px rgba(2,6,23,.10);
+}
+
+/* ===== AUTO BOX ===== */
+:root[data-theme="light"] .autoBox{
+  background: rgba(30,64,175,.05);
+  border: 2px solid var(--border-soft);
+}
+
+/* ===== MODE SWITCH ===== */
+:root[data-theme="light"] .modeBox{
+  background: rgba(30,64,175,.05);
+  border: 2px solid var(--border-soft);
+}
+
+:root[data-theme="light"] .modeBtn{
+  background: #ffffff;
+  border: 2px solid var(--border-soft);
+}
+
+:root[data-theme="light"] .modeBtn.active{
+  background: rgba(30,64,175,.12);
+  border-color: var(--border);
+}
+
+/* ===== Leaflet ===== */
+:root[data-theme="light"] .leaflet-container{
+  background: #e2e8f0;
+}
+
+.leaflet-container{
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,.35);
+}
+
+/* ===== MAPA: usuń "ramkę" (to padding+tło karty) ===== */
+.card.mapCard{
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+/* nagłówek mapy może zostać normalny */
+.card.mapCard h2,
+.card.mapCard .small{
+  padding-left: 16px;
+  padding-right: 16px;
+}
+.card.mapCard h2{ padding-top: 16px; }
+.card.mapCard .small{ padding-bottom: 10px; }
+
+/* mapa ma wypełnić kartę i nie mieć własnych ramek */
+#map.mapFill{
+  width: 100%;
+  border: 0 !important;
+  border-radius: 0 0 14px 14px;  /* dół karty */
+  overflow: hidden;
+}
+
+/* Leaflet często ma własne tło/border – kasujemy */
+#map.mapFill .leaflet-container{
+  border: 0 !important;
+  border-radius: 0 0 14px 14px !important;
+  outline: none !important;
+}
+#map.mapFill .leaflet-control-container{
+  border: 0 !important;
+}
+
+</style>
+
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+</head>
+
+<body autocomplete="off">
+
+<div class="themeSwitch" id="themeSwitch">
+  <div class="tLabel">Tryb</div>
+  <button type="button" class="tBtn" id="themeBtn">🌙 Ciemny</button>
+</div>
+
+  <div class="app">
+    <div class="layout">
+
+      <!-- LEWA KOLUMNA -->
+      <aside class="col left sidebar">
+	  <div class="card">
+        <h1>TRASEO - Kalkulator kosztów trasy</h1>
+
+        <div class="modeBox">
+          <div class="modeLabel">Tryb pracy</div>
+
+          <div class="modeSwitch" id="modeSwitch">
+            <button type="button" class="modeBtn active" data-mode="suggest">
+              Wycena trasy
+              <span class="modeSub">liczę cenę sugerowaną</span>
+            </button>
+
+            <button type="button" class="modeBtn" data-mode="offer">
+              Marża ze zlecenia
+              <span class="modeSub">mam cenę → liczę marżę</span>
+            </button>
+          </div>
+
+          <div class="modeOfferRow" id="modeOfferRow" style="display:none;">
+            <label class="modeInlineLabel">Cena zlecenia (EUR)</label>
+            <input id="offer_price_eur" type="number" step="0.01" placeholder="np. 4500" />
+          </div>
+        </div>
+
+        <input id="calc_mode" type="hidden" value="suggest" />
+
+        <h2>Dane trasy</h2>
+
+        <div id="routeList" class="routeList"></div>
+
+        <div class="stopsActions">
+          <button type="button" class="btn secondary" onclick="addRoutePoint()">+ Dodaj punkt</button>
+          <button type="button" class="btn secondary" onclick="clearRouteMiddle()">Wyczyść punkty</button>
+        </div>
+
+        <div class="row2" style="margin-top:10px;">
+          <button type="button" class="btn secondary" onclick="getRoute()">Pobierz km</button>
+        </div>
+
+        <pre id="routeInfo" style="margin-top:10px;"></pre>
+
+        <div class="small" style="margin-top:6px;">
+          Dodaj np. załadunki/rozładunki po drodze. Kolejność ma znaczenie.
+        </div>
+        <div class="small" style="margin-top:6px;">Np. “Berlin” ↵ “Hannover” ↵ “Hamburg”</div>
+
+        <h2 style="margin-top:14px;">Parametry</h2>
+
+        <label>Dystans trasy (km) – z mapy</label>
+        <input id="base_distance_km" type="number" value="0" readonly />
+
+        <label>Pusty dolot (km)</label>
+        <input id="empty_km" type="number" value="0" />
+
+        <label>Dystans do kalkulacji (km)</label>
+        <input id="distance_km" type="number" value="0" readonly />
+
+        <div class="small" style="margin-top:6px;">
+          Dystans do kalkulacji = trasa z mapy + pusty dolot
+        </div>
+
+        <div class="row2">
+          <div>
+            <label>Spalanie (l/100 km)</label>
+            <input id="fuel_l_per_100km" type="number" value="28"/>
+          </div>
+          <div>
+            <label>Cena paliwa (PLN/l)</label>
+            <input id="fuel_price_pln_per_l" type="number" value="5.60" step="0.01"/>
+          </div>
+        </div>
+
+<div class="row2">
+  <div>
+    <label>Kurs EUR/PLN</label>
+    <input id="eur_pln" type="number" value="4.50" step="0.01"/>
+  </div>
+  <div>
+    <label>Kurs GBP/EUR</label>
+    <input id="gbp_eur" type="number" value="1.17" step="0.01"/>
+  </div>
+</div>
+        <div class="row2">
+          <div>
+            <label>Myto (EUR)</label>
+            <input id="tolls_eur" type="number" value="0"/>
+          </div>
+          <div>
+            <label>Promy (EUR)</label>
+            <input id="ferries_eur" type="number" value="0"/>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div>
+            <div class="small">Termin płatności</div>
+            <input id="payment_terms" type="text" value="14 dni" />
+          </div>
+        </div>
+
+        <h2 style="margin-top:14px;">Automaty</h2>
+
+        <div class="autoBox">
+          <label class="chk">
+            <input id="auto_driver_days" type="checkbox" checked>
+            AUTO dni kierowcy
+          </label>
+
+          <div>
+            <label>km/dzień</label>
+            <input id="km_per_day" type="number" value="550" min="1">
+          </div>
+
+          <label class="chk">
+            <input id="auto_other_costs" type="checkbox" checked>
+            AUTO inne koszty
+          </label>
+
+          <div>
+            <label>€/dzień (inne)</label>
+            <input id="daily_extra_eur" type="number" value="100" step="1" min="0">
+          </div>
+        </div>
+
+        <div class="small" id="autoNote" style="margin-top:6px;"></div>
+
+        <div class="row2">
+          <div>
+            <label>Dni kierowcy</label>
+            <input id="driver_days" type="number" value="0"/>
+          </div>
+          <div>
+            <label>Stawka (EUR/dzień)</label>
+            <input id="driver_eur_per_day" type="number" value="0"/>
+          </div>
+        </div>
+
+        <label>Inne koszty (EUR)</label>
+        <input id="other_costs_eur" type="number" value="0"/>
+
+        <label>Marża docelowa (%)</label>
+        <input id="target_margin_pct" type="number" value="12"/>
+		</div>
+      </aside>
+
+ <main class="col center">
+  <div class="card mapCard">
+    <div class="mapHead">
+      <div>
+        <h2>Mapa trasy</h2>
+        <div class="small">Podgląd trasy z OSRM</div>
+      </div>
+    </div>
+
+    <div id="map" class="mapBig mapFill"></div>
+  </div>
+</main>
+
+      <!-- PRAWA KOLUMNA -->
+      <aside class="col right main">
+
+        <div class="card">
+          <h2>Wyniki</h2>
+
+          <div class="kpis">
+            <div class="kpi">
+              <div class="label">Koszt całkowity</div>
+              <div class="value" id="kpi_total">—</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Proponowana cena</div>
+              <div class="value" id="kpi_price">—</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Marża</div>
+              <div class="value" id="kpi_margin">—</div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;">
+            <table>
+              <thead>
+                <tr><th>Pozycja</th><th style="text-align:right;">Wartość</th></tr>
+              </thead>
+              <tbody id="costTable"></tbody>
+            </table>
+            <div class="small" style="margin-top:8px;" id="perKm"></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px;">
+          <div class="row2" style="align-items:center;">
+            <div>
+              <h2 style="margin:0;">Myto – kraj</h2>
+              <div class="small">UE offline (podział km i kosztów)</div>
+			  <div class="small" id="vignetteTotal" style="margin-top:8px;"></div>
+            </div>
+            <div class="small" id="vignetteTotal"></div>
+          </div>
+
+          <div style="margin-top:12px;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Kraj</th>
+                  <th style="text-align:right;">km</th>
+                  <th style="text-align:right;">stawka €/km</th>
+                  <th style="text-align:right;">koszt €</th>
+                </tr>
+              </thead>
+              <tbody id="tollsTable"></tbody>
+            </table>
+          </div>
+        </div>
+		<div class="card historyPanel" id="historyPanel" style="margin-top:12px;">
+          <div class="historyPanelHead" onclick="toggleHistoryPanel()">
+            <div>
+              <h2 style="margin:0;">Historia wycen</h2>
+              <div class="small">Wczytaj / odśwież / duplikuj / usuń</div>
+            </div>
+            <button type="button" class="iconBtn" id="historyChevron" aria-label="toggle">▾</button>
+          </div>
+
+          <div class="historyPanelBody" id="historyPanelBody" style="display:none;">
+            <div class="historyPanelActions">
+              <button type="button" class="btn secondary" onclick="openSaveHistoryModal()">+ Zapisz</button>
+              <button type="button" class="btn secondary" onclick="openPdfReport()">PDF</button>
+              <button type="button" class="btn secondary" onclick="clearHistoryConfirm()">Wyczyść</button>
+            </div>
+
+            <div id="historyList" class="historyList"></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px;">
+          <div class="row2" style="align-items:center;">
+            <div>
+              <h2>Raport AI</h2>
+              <div class="small">Opis + ryzyka + rekomendacja</div>
+            </div>
+            <button class="btn" type="button" id="btnReportAI">Wygeneruj raport AI</button>
+          </div>
+          <pre id="aiReport" style="margin-top:10px;"></pre>
+        </div>
+
+        <div class="card" style="margin-top:12px;">
+          <h2>Opis</h2>
+          <pre id="summary"></pre>
+        </div>
+
+        <div class="card" style="margin-top:12px;">
+          <h2>Debug</h2>
+          <div class="small">Jeśli chcesz podejrzeć surowe dane</div>
+          <pre id="out" style="margin-top:10px;"></pre>
+        </div>
+
+      </aside>
+
+    </div>
+  </div>
+
+  <!-- actionBar bez zmian -->
+  <div class="actionBar">
+    <button type="button" class="btn" onclick="run()">Policz</button>
+    <button type="button" class="btn secondary" onclick="toggleHistoryPanel(true)">📚 Historia</button>
+    <button type="button" class="btn secondary" onclick="openPdfReport()">PDF oferta</button>
+  </div>
+  
+  <!-- MINI MODAL zapisu historii (wymagane przez app.js) -->
+<div id="historyModal" class="historyModal" style="display:none;">
+  <div class="historyModalCard">
+    <div class="historyModalTitle">Zapisz wycenę</div>
+
+    <div class="historyForm">
+      <label>Nazwa (np. Klient / relacja)</label>
+      <input id="h_name" type="text" placeholder="np. Traseo | Warszawa → Piacenza" />
+
+      <label>Klient / zleceniodawca</label>
+      <input id="h_client" type="text" placeholder="np. ACME Sp. z o.o." />
+
+      <label>Notatka</label>
+      <input id="h_note" type="text" placeholder="np. termin 2 dni, płatność 14 dni" />
+    </div>
+
+    <div class="historyModalBtns">
+      <button type="button" class="btn secondary" onclick="closeSaveHistoryModal()">Anuluj</button>
+      <button type="button" class="btn" onclick="saveCurrentToHistory()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="app.js"></script>
+  
+<script>
+(function () {
+
+  const root = document.documentElement;
+  const btn = document.getElementById("themeBtn");
+
+  if (!btn) return;
+
+  function updateMapTheme() {
+    if (!window.map || !window.lightTiles || !window.darkTiles) return;
+
+    const theme = root.getAttribute("data-theme");
+
+    if (theme === "light") {
+      window.map.removeLayer(window.darkTiles);
+      window.map.addLayer(window.lightTiles);
+    } else {
+      window.map.removeLayer(window.lightTiles);
+      window.map.addLayer(window.darkTiles);
+    }
+  }
+
+  function setTheme(t) {
+    root.setAttribute("data-theme", t);
+    localStorage.setItem("theme", t);
+    btn.textContent = (t === "light") ? "☀️ Jasny" : "🌙 Ciemny";
+    updateMapTheme();
+  }
+
+  const saved = localStorage.getItem("theme") || "dark";
+  setTheme(saved);
+
+  btn.addEventListener("click", () => {
+    const cur = root.getAttribute("data-theme") || "dark";
+    setTheme(cur === "dark" ? "light" : "dark");
+  });
+
+})();
+</script>
+
+</body>
+</html>
