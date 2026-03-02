@@ -2,7 +2,6 @@
 <html lang="pl" data-theme="dark">
 <head>
   <meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>TRASEO - Kalkulator kosztów trasy</title>
 <style>
 
@@ -880,77 +879,50 @@ button{
   border: 0 !important;
 }
 
-/* ================= MOBILE CLEAN LAYOUT ================= */
+/* ================= MOBILE HARD OVERRIDE ================= */
 
 @media (max-width: 980px){
 
-  body{
-    padding:16px;
-    padding-bottom: 40px;
-  }
-
-  .layout{
-    display:flex;
-    flex-direction: column;
-    height:auto;
-    gap:20px;
-  }
-
-  .col{
-    position: static !important;
-    height:auto !important;
-    overflow:visible !important;
-  }
-
-  .col.center{
-    order: 1;
-  }
-
-  .col.left{
-    order: 2;
-  }
-
-  .col.right{
-    order: 3;
-  }
-
-  .mapCard{
-    height:auto;
-  }
-
-  #map.mapFill{
-    height: 380px;
-    min-height: 300px;
-  }
-
-  .actionBar{
-    position: static;
-    margin-top:20px;
-  }
-
-  .kpis{
-    grid-template-columns: 1fr;
-  }
-
-  .row2{
-    grid-template-columns: 1fr;
+  html{
+    font-size: 18px !important;
   }
 
   body{
-    font-size: 16px;
+    font-size: 18px !important;
   }
 
-  h1{ font-size:22px; }
-  h2{ font-size:18px; }
+  h1{
+    font-size: 26px !important;
+  }
+
+  h2{
+    font-size: 20px !important;
+  }
+
+  .small{
+    font-size: 16px !important;
+  }
 
   input, select, textarea{
-    font-size:16px;
-    padding:14px;
+    font-size: 18px !important;
+    padding: 16px 16px !important;
   }
 
   .btn{
-    font-size:16px;
-    padding:14px;
+    font-size: 18px !important;
+    padding: 16px 16px !important;
+  }
+
+  .kpi .value{
+    font-size: 30px !important;
+  }
+
+  th, td{
+    font-size: 17px !important;
+  }
+
+  pre{
+    font-size: 17px !important;
   }
 
 }
@@ -1310,6 +1282,7 @@ button{
 
 </body>
 </html>
+
 
 
 
