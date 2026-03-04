@@ -166,6 +166,8 @@ if (!process.env.OPENAI_API_KEY) {
   console.warn("⚠️ Brak OPENAI_API_KEY w .env (server/.env)");
 }
 
+console.log("OPENAI KEY START:", process.env.OPENAI_API_KEY?.slice(0,12));
+
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
