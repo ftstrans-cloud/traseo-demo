@@ -6,6 +6,8 @@ import fs from "fs";
 import path from "path";
 import * as turf from "@turf/turf";
 
+dotenv.config();
+
 const EU_A3 = new Set([
   "AUT","BEL","BGR","HRV","CYP","CZE","DNK","EST","FIN","FRA","DEU","GRC",
   "HUN","IRL","ITA","LVA","LTU","LUX","MLT","NLD","POL","PRT","ROU","SVK",
