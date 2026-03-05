@@ -170,9 +170,20 @@ if (!process.env.OPENAI_API_KEY) {
 
 console.log("OPENAI KEY START:", process.env.OPENAI_API_KEY?.slice(0,12));
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+let client = null;
+
+if (process.env.OPENAI_API_KEY) {
+  try {
+    client = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+    console.log("✅ OpenAI client initialized");
+  } catch (err) {
+    console.warn("⚠️ OpenAI init error:", err.message);
+  }
+} else {
+  console.warn("⚠️ OPENAI_API_KEY not set — AI report disabled");
+}
 
 const app = express();
 app.use(cors());
@@ -364,42 +375,54 @@ app.post("/api/report", async (req, res) => {
     const body = req.body || {};
     const calc = body.calc || body.result || body;
 
-    if (!calc || typeof calc !== "object" || Object.keys(calc).length === 0) {
-      return res.status(400).json({ error: "Brak danych kalkulatora (pusty payload)" });
+    if (!calc || typeof calc !== "object") {
+      return res.status(400).json({
+        error: "Brak danych kalkulatora"
+      });
     }
 
-    // Jeśli nie masz klucza — zwróć czytelnie, zamiast 500 “Błąd serwera”
-    if (!process.env.OPENAI_API_KEY) {
-      return res.status(200).json({
+    if (!client) {
+      return res.json({
         report:
-          "Brak OPENAI_API_KEY w server/.env.\n" +
-          "Dodaj linię: OPENAI_API_KEY=... i zrestartuj serwer.",
+          "Raport AI jest chwilowo niedostępny (brak klucza API). " +
+          "Kalkulator działa poprawnie."
       });
     }
 
     const prompt = `
 Jesteś asystentem spedytora.
-Masz POLICZONE koszty trasy. NIE licz nic od nowa.
+Masz już policzone koszty trasy.
 
-Format:
-1) Podsumowanie
-2) Koszty (paliwo, kierowca, opłaty drogowe, promy, inne)
-3) Rekomendowana cena
-4) Ryzyka / uwagi (max 3)
+Podaj:
 
-Wyniki:
+1. Podsumowanie
+2. Analizę kosztów
+3. Rekomendowaną cenę
+4. Ryzyka
+
+Dane kalkulacji:
 ${JSON.stringify(calc, null, 2)}
-`.trim();
+`;
 
     const response = await client.responses.create({
-      model: "gpt-4.1-mini",
+      model: "gpt-40-mini",
       input: prompt,
     });
 
-    return res.json({ report: response.output_text });
+    return res.json({
+      report: response.output_text
+    });
+
   } catch (err) {
-    console.error("REPORT ERROR:", err);
-    return res.status(500).json({ error: "Błąd serwera AI" });
+
+    console.error("REPORT ERROR:", err.message);
+
+    return res.json({
+      report:
+        "Nie udało się wygenerować raportu AI. " +
+        "Kalkulator działa poprawnie."
+    });
+
   }
 });
 
